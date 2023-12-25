@@ -121,7 +121,9 @@ export function CommentView({ comment, author, columnCount }: CommentProps) {
             color={comment.upVote ? colors.indigo[700] : colors.black[100]}
           />
         </Button>
-        <div>{isVoting ? <LoadingSpinner /> : comment.rating}</div>
+        <div className={"flex w-6 items-center justify-center"}>
+          {isVoting ? <LoadingSpinner /> : comment.rating}
+        </div>
         <Button
           variant="ghost"
           size="icon"
