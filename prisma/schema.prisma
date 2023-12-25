@@ -12,13 +12,15 @@ datasource db {
 }
 
 model Post {
-  id        String         @id @default(cuid())
-  createdAt DateTime       @default(now())
-  authorId  String
-  title     String         @db.VarChar(255)
-  content   String         @db.VarChar(255)
-  upVotes   PostUpVote[]
-  downVotes PostDownVote[]
+  id               String           @id @default(cuid())
+  createdAt        DateTime         @default(now())
+  authorId         String
+  title            String           @db.VarChar(255)
+  content          String           @db.VarChar(255)
+  upVotes          PostUpVote[]
+  downVotes        PostDownVote[]
+  comments         PostComment[]
+  commentsComments CommentComment[]
 
   @@index([authorId])
 }
@@ -43,13 +45,54 @@ model PostDownVote {
   @@index([postId])
 }
 
-// model User {
-//     id            String    @id @default(cuid())
-//     name          String?
-//     email         String?   @unique
-//     emailVerified DateTime?
-//     image         String?
-//     accounts      Account[]
-//     sessions      Session[]
-//     posts         Post[]
-// }
+model PostComment {
+  id        String            @id @default(cuid())
+  userId    String
+  post      Post              @relation(fields: [postId], references: [id])
+  postId    String
+  content   String
+  createdAt DateTime          @default(now())
+  upVotes   CommentUpVote[]
+  downVotes CommentDownVote[]
+
+  @@index([postId])
+}
+
+model CommentComment {
+  id        String            @id @default(cuid())
+  userId    String
+  commentId String
+  content   String
+  post      Post              @relation(fields: [postId], references: [id])
+  postId    String
+  createdAt DateTime          @default(now())
+  upVotes   CommentUpVote[]
+  downVotes CommentDownVote[]
+
+  @@index([commentId])
+  @@index([postId])
+}
+
+model CommentUpVote {
+  id               String          @id @default(cuid())
+  userId           String
+  commentComment   CommentComment? @relation(fields: [commentCommentId], references: [id])
+  commentCommentId String?
+  postComment      PostComment?    @relation(fields: [postCommentId], references: [id])
+  postCommentId    String?
+
+  @@index([commentCommentId])
+  @@index([postCommentId])
+}
+
+model CommentDownVote {
+  id               String          @id @default(cuid())
+  userId           String
+  commentComment   CommentComment? @relation(fields: [commentCommentId], references: [id])
+  commentCommentId String?
+  postComment      PostComment?    @relation(fields: [postCommentId], references: [id])
+  postCommentId    String?
+
+  @@index([commentCommentId])
+  @@index([postCommentId])
+}
