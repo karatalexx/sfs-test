@@ -44,12 +44,12 @@ export function CreatePost() {
   };
 
   const handleCreatePost = () => {
-    if(!values.content || !values.title) {
+    if (!values.content || !values.title) {
       return;
     }
 
     mutate({ ...values });
-  }
+  };
 
   if (!user) {
     return null;
