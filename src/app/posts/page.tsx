@@ -3,9 +3,16 @@ import { PostView } from "~/components/post-view";
 import { api } from "~/utils/api";
 import { CreatePost } from "~/components/create-post";
 import Link from "next/link";
+import { LoadingView } from "~/components/ui/loading-view";
 
 export default function Page() {
-  const { data } = api.posts.getAll.useQuery({filter: {me: true}});
+  const { data, isLoading } = api.posts.getAll.useQuery({
+    filter: { me: true },
+  });
+
+  if (isLoading) {
+    return <LoadingView />;
+  }
 
   return (
     <div className="mx-40 flex w-[760px] max-w-[760px] flex-1 py-4">

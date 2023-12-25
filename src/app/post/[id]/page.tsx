@@ -5,6 +5,7 @@ import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { CreatePostComment } from "~/components/create-post-comment";
 import { CommentView } from "~/components/comment-view";
+import { LoadingView } from "~/components/ui/loading-view";
 
 export default function Page({ params }: { params: { id: string } }) {
   const { data, isLoading: postLoading } = api.posts.getOne.useQuery({
@@ -14,7 +15,7 @@ export default function Page({ params }: { params: { id: string } }) {
     api.posts.getComments.useQuery({ postId: params.id });
 
   if (postLoading || commentsLoading || !data) {
-    return <p>Loading</p>;
+    return <LoadingView />;
   }
 
   const { post, author } = data;

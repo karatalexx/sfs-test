@@ -41,7 +41,7 @@ export function PostView({ post, author, children }: PostProps) {
         return;
       }
 
-      ctx.posts.getAll.setData(undefined, (data) => {
+      ctx.posts.getAll.setData({}, (data) => {
         return data?.map(({ post: postData, author }) => ({
           post: postData.id === updatedPost.id ? updatedPost : postData,
           author,
