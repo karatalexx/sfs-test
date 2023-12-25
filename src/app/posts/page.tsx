@@ -5,7 +5,7 @@ import { CreatePost } from "~/components/create-post";
 import Link from "next/link";
 
 export default function Page() {
-  const { data } = api.posts.getAll.useQuery({});
+  const { data } = api.posts.getAll.useQuery({filter: {me: true}});
 
   return (
     <div className="mx-40 flex w-[760px] max-w-[760px] flex-1 py-4">

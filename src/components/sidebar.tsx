@@ -9,8 +9,12 @@ export function Sidebar() {
   const { user } = useUser();
   const router = useRouter();
 
-  const handleNavigateHome = () => {
+  const handleNavigateToHome = () => {
     router.push("/dashboard");
+  };
+
+  const handleNavigateToPosts = () => {
+    router.push("/posts");
   };
 
   return (
@@ -20,7 +24,7 @@ export function Sidebar() {
           <li className="mb-2 h-12">
             <Button
               className="flex h-full w-full items-center justify-start"
-              onClick={handleNavigateHome}
+              onClick={handleNavigateToHome}
               variant="nav"
             >
               <HomeIcon className="mr-2 h-4 w-4" /> Home
@@ -43,6 +47,7 @@ export function Sidebar() {
               <Button
                 variant="nav"
                 className="flex h-full w-full items-center justify-start"
+                onClick={handleNavigateToPosts}
               >
                 <ChatBubbleIcon className="mr-2 h-4 w-4" /> My posts
               </Button>

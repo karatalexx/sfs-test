@@ -79,39 +79,55 @@ const mapCommentForClient = (
 };
 
 export const postsRouter = createTRPCRouter({
-  getAll: publicProcedure.query(async ({ ctx }) => {
-    const posts = await ctx.db.post.findMany({
-      take: 100,
-      include: {
-        upVotes: true,
-        downVotes: true,
-      },
-    });
+  getAll: publicProcedure
+    .input(
+      z.object({
+        filter: z
+          .object({
+            me: z.boolean(),
+          })
+          .optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const posts = await ctx.db.post.findMany({
+        take: 100,
+        include: {
+          upVotes: true,
+          downVotes: true,
+        },
+        ...(input.filter?.me &&
+          ctx.userId && {
+            where: {
+              authorId: ctx.userId,
+            },
+          }),
+      });
 
-    const users = (
-      await clerkClient.users.getUserList({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        userId: posts.map(({ authorId }) => authorId),
-        limit: 100,
-      })
-    ).map(filterUserForClient);
+      const users = (
+        await clerkClient.users.getUserList({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+          userId: posts.map(({ authorId }) => authorId),
+          limit: 100,
+        })
+      ).map(filterUserForClient);
 
-    return posts.map((post) => {
-      const author = users.find((user) => user.id === post.authorId);
+      return posts.map((post) => {
+        const author = users.find((user) => user.id === post.authorId);
 
-      if (!author || (!author.username && !author.firstName)) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Author for post not found",
-        });
-      }
+        if (!author || (!author.username && !author.firstName)) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Author for post not found",
+          });
+        }
 
-      return {
-        post: mapPostForClient(post, ctx.userId),
-        author,
-      };
-    });
-  }),
+        return {
+          post: mapPostForClient(post, ctx.userId),
+          author,
+        };
+      });
+    }),
   getOne: privateProcedure
     .input(
       z.object({
