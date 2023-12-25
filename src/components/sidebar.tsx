@@ -3,16 +3,25 @@ import { HomeIcon, EnterIcon, ChatBubbleIcon } from "@radix-ui/react-icons";
 import { Button } from "~/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { SignInButton, useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 export function Sidebar() {
   const { user } = useUser();
+  const router = useRouter();
+
+  const handleNavigateHome = () => {
+    router.push("/dashboard");
+  };
 
   return (
     <div className="flex w-60 flex-col items-center justify-between border-r border-solid border-gray-200 px-4 py-4">
       <nav className="w-full">
         <ul className="w-full">
           <li className="mb-2 h-12">
-            <Button className="flex h-full w-full items-center justify-start">
+            <Button
+              className="flex h-full w-full items-center justify-start"
+              onClick={handleNavigateHome}
+            >
               <HomeIcon className="mr-2 h-4 w-4" /> Home
             </Button>
           </li>
