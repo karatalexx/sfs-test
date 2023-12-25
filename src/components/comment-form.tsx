@@ -48,7 +48,7 @@ export function CommentForm({ createComment, isLoading }: Props) {
         />
         <Divider />
         <div className="flex w-full items-center justify-end pt-2">
-          <Button onClick={handleCreateComment} className="w-20">
+          <Button onClick={handleCreateComment} className="w-20" variant={"submit"}>
             {isLoading ? <LoadingSpinner /> : "Comment"}
           </Button>
         </div>

@@ -120,7 +120,7 @@ export function PostView({ post, author, children }: PostProps) {
               />
             </Button>
           </div>
-          <div className="flex h-full flex-1 flex-col justify-around">
+          <div className="ml-1 flex h-full flex-1 flex-col justify-around">
             <div className="flex items-center justify-start">
               <Avatar className="h-6 w-6">
                 <AvatarImage src={author?.imageUrl} alt="@shadcn" />
@@ -130,7 +130,7 @@ export function PostView({ post, author, children }: PostProps) {
                 Posted by {postedBy} {dayjs(post.createdAt).fromNow()}
               </div>
             </div>
-            <div className="text-base font-medium">{post.title}</div>
+            <div className="mb-2 mt-2 text-base font-medium">{post.title}</div>
             <div className="text-sm text-gray-700">{post.content}</div>
           </div>
         </div>

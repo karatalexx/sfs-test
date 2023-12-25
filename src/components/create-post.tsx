@@ -87,7 +87,7 @@ export function CreatePost() {
         />
         <Divider />
         <div className="flex w-full items-center justify-end pt-2">
-          <Button onClick={handleCreatePost} className="w-14">
+          <Button onClick={handleCreatePost} className="w-14" variant={"submit"}>
             {isPosting ? <LoadingSpinner /> : "Post"}
           </Button>
         </div>

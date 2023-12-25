@@ -21,6 +21,7 @@ export function Sidebar() {
             <Button
               className="flex h-full w-full items-center justify-start"
               onClick={handleNavigateHome}
+              variant="nav"
             >
               <HomeIcon className="mr-2 h-4 w-4" /> Home
             </Button>
@@ -28,7 +29,10 @@ export function Sidebar() {
           {!user && (
             <li className="h-12">
               <SignInButton>
-                <Button className="flex h-full w-full items-center justify-start">
+                <Button
+                  variant="nav"
+                  className="flex h-full w-full items-center justify-start"
+                >
                   <EnterIcon className="mr-2 h-4 w-4" /> Log In
                 </Button>
               </SignInButton>
@@ -36,7 +40,10 @@ export function Sidebar() {
           )}
           {user && (
             <li className="h-12">
-              <Button className="flex h-full w-full items-center justify-start">
+              <Button
+                variant="nav"
+                className="flex h-full w-full items-center justify-start"
+              >
                 <ChatBubbleIcon className="mr-2 h-4 w-4" /> My posts
               </Button>
             </li>
