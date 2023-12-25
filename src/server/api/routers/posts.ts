@@ -1,4 +1,4 @@
-import { User, clerkClient } from "@clerk/nextjs/server";
+import { type User, clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
@@ -7,6 +7,7 @@ import {
   publicProcedure,
   privateProcedure,
 } from "~/server/api/trpc";
+import { type Post, type PostUpVote, type PostDownVote } from "@prisma/client";
 
 const filterUserForClient = ({
   id,
@@ -18,10 +19,29 @@ const filterUserForClient = ({
   return { id, username, imageUrl, firstName, lastName };
 };
 
+const mapPostForClient = (post: Post & {upVotes: PostUpVote[], downVotes: PostDownVote[]}, userId: string | null) => {
+  const { upVotes = [], downVotes = [] } = post;
+
+  const rating = upVotes.length - downVotes.length;
+  const upVote = !!upVotes.find((vote) => vote.userId === userId);
+  const downVote = !!downVotes.find((vote) => vote.userId === userId);
+
+  return  {
+    ...post,
+    rating,
+    upVote,
+    downVote,
+  }
+}
+
 export const postsRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.db.post.findMany({
       take: 100,
+      include: {
+        upVotes: true,
+        downVotes: true,
+      }
     });
 
     const users = (
@@ -43,7 +63,7 @@ export const postsRouter = createTRPCRouter({
       }
 
       return {
-        post,
+        post: mapPostForClient(post, ctx.userId),
         author,
       };
     });
@@ -67,5 +87,70 @@ export const postsRouter = createTRPCRouter({
       });
 
       return post;
+    }),
+  vote: privateProcedure
+    .input(
+      z.object({
+        postId: z.string().min(1).max(50),
+        vote: z.enum(['up', 'down']),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const postToUpdate = await ctx.db.post.findUnique({
+        where: { id: input.postId },
+        include: { upVotes: true, downVotes: true },
+      });
+
+      if(!postToUpdate) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Post with id ${input.postId} not found`,
+        });
+      }
+
+      const upVote = postToUpdate.upVotes.find(vote => vote.userId === ctx.userId);
+      const downVote = postToUpdate.downVotes.find(vote => vote.userId === ctx.userId);
+
+      const post = await ctx.db.post.update({
+        data: {
+          ...(input.vote === "up" && {
+            upVotes: {
+              create: {
+                userId: ctx.userId
+              },
+            },
+            ...(downVote && {
+              downVotes: {
+                delete: {
+                  id: downVote.id,
+                }
+              },
+            }),
+          }),
+          ...(input.vote === "down" && {
+            downVotes: {
+              create: {
+                userId: ctx.userId
+              },
+            },
+            ...(upVote && {
+              upVotes: {
+                delete: {
+                  id: upVote.id,
+                }
+              },
+            }),
+          }),
+        },
+        where: {
+          id: input.postId
+        },
+        include: {
+          upVotes: true,
+          downVotes: true,
+        }
+      });
+
+      return mapPostForClient(post, ctx.userId);
     }),
 });

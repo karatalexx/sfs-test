@@ -2,25 +2,46 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "mysql"
-    url      = env("DATABASE_URL")
-    relationMode = "prisma"
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 model Post {
-    id        String      @id @default(cuid())
-    createdAt DateTime @default(now())
-    authorId String
-    title String @db.VarChar(255)
-    content String @db.VarChar(255)
+  id        String         @id @default(cuid())
+  createdAt DateTime       @default(now())
+  authorId  String
+  title     String         @db.VarChar(255)
+  content   String         @db.VarChar(255)
+  upVotes   PostUpVote[]
+  downVotes PostDownVote[]
 
-    @@index([authorId])
+  @@index([authorId])
 }
 
+model PostUpVote {
+  id     String @id @default(cuid())
+  userId String
+  post   Post   @relation(fields: [postId], references: [id])
+  postId String
+
+  @@unique([postId, userId])
+  @@index([postId])
+}
+
+model PostDownVote {
+  id     String @id @default(cuid())
+  userId String
+  post   Post   @relation(fields: [postId], references: [id])
+  postId String
+
+  @@unique([postId, userId])
+  @@index([postId])
+}
 
 // model User {
 //     id            String    @id @default(cuid())

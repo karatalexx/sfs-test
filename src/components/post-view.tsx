@@ -3,9 +3,16 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { Button } from "~/components/ui/button";
 import { DoubleArrowUpIcon, DoubleArrowDownIcon } from "@radix-ui/react-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
-import { Post } from "@prisma/client";
+import { type RouterOutputs } from "~/utils/api";
+import { api } from "~/trpc/react";
+import { toast } from "react-hot-toast";
+import { useUser } from "@clerk/nextjs";
+import colors from 'tailwindcss/colors'
+import { LoadingSpinner } from "~/components/ui/loading-spinner";
 
 dayjs.extend(relativeTime);
+
+type Post = RouterOutputs["posts"]["getAll"][number]["post"]
 
 type Author = {
   id: string;
@@ -21,19 +28,66 @@ type PostProps = {
 };
 
 export function PostView({ post, author }: PostProps) {
+  const { user } = useUser();
+  const ctx = api.useUtils();
   const postedBy = (
     author.username ?? `${author?.firstName} ${author?.lastName ?? ""}`
   ).trim();
+
+  const { mutate, isLoading: isVoting } = api.posts.vote.useMutation({
+    onSuccess: (updatedPost) => {
+      ctx.posts.getAll.setData(undefined, data => {
+        return data?.map(({post: postData, author}) => ({
+          post: postData.id === updatedPost.id ? updatedPost : postData,
+          author
+        }))
+      })
+      void ctx.posts.getAll.invalidate();
+    },
+    onError: (e) => {
+      const errorMessage = e.data?.zodError?.fieldErrors.content;
+      if (errorMessage?.[0]) {
+        toast.error(errorMessage[0]);
+      } else {
+        toast.error("Failed to vote! Please try again later.");
+      }
+    },
+  });
+
+  const handleVotePost = (vote: 'up' | 'down') => {
+    const userId = user?.id;
+
+    if(
+      !userId ||
+      (vote === 'up' && post.upVote) ||
+      (vote === 'down' && post.downVote) ||
+      isVoting
+    ) {
+      return;
+    }
+
+    mutate({
+      postId: post.id,
+      vote,
+    })
+  }
+
+
   return (
     <div className="flex w-full border-b border-solid border-gray-200 py-6">
       <div className="flex h-[84px] w-full items-center">
         <div className="mr-2 flex flex-col items-center">
-          <Button variant="ghost" size="icon">
-            <DoubleArrowUpIcon className="h-4 w-4" />
+          <Button variant="ghost" size="icon" onClick={() => handleVotePost("up")} disabled={!user?.id}>
+            <DoubleArrowUpIcon className="h-4 w-4" color={post.upVote ? colors.indigo[700] : colors.black[100]} />
           </Button>
-          <div>100</div>
-          <Button variant="ghost" size="icon">
-            <DoubleArrowDownIcon className="h-4 w-4" />
+          <div>{isVoting ? <LoadingSpinner /> : post.rating}</div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleVotePost("down")}
+            disabled={!user?.id}
+          >
+            <DoubleArrowDownIcon className="h-4 w-4" color={post.downVote ? colors.indigo[700] : colors.black[100]} />
           </Button>
         </div>
         <div className="flex h-full flex-1 flex-col justify-around">

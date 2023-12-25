@@ -2,12 +2,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { toast } from "react-hot-toast";
 import { Divider } from "~/components/ui/divider";
-import { type User } from "@clerk/nextjs/server";
 import { Button } from "./ui/button";
-import { ChangeEvent, useState } from "react";
-
+import { type ChangeEvent, useState } from "react";
 import { api } from "~/trpc/react";
 import { useUser } from "@clerk/nextjs";
+import { LoadingSpinner } from "~/components/ui/loading-spinner";
 
 const initValues = {
   title: "",
@@ -19,8 +18,6 @@ export function CreatePost() {
   const [values, setValues] = useState(initValues);
   const ctx = api.useUtils();
 
-  if (!user) return null;
-
   const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onSuccess: () => {
       setValues(initValues);
@@ -29,16 +26,12 @@ export function CreatePost() {
     onError: (e) => {
       const errorMessage = e.data?.zodError?.fieldErrors.content;
       if (errorMessage?.[0]) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         toast.error(errorMessage[0]);
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         toast.error("Failed to post! Please try again later.");
       }
     },
   });
-
-  if (!user) return null;
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     setValues((prevState) => {
@@ -49,6 +42,18 @@ export function CreatePost() {
       };
     });
   };
+
+  const handleCreatePost = () => {
+    if(!values.content || !values.title) {
+      return;
+    }
+
+    mutate({ ...values });
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <form
@@ -82,7 +87,9 @@ export function CreatePost() {
         />
         <Divider />
         <div className="flex w-full items-center justify-end pt-2">
-          <Button onClick={() => mutate({ ...values })}>Post</Button>
+          <Button onClick={handleCreatePost} className="w-14">
+            {isPosting ? <LoadingSpinner /> : "Post"}
+          </Button>
         </div>
       </div>
     </form>
